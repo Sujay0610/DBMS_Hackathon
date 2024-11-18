@@ -1,9 +1,29 @@
-# models.py
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_cors import CORS
+import logging
+from werkzeug.security import generate_password_hash, check_password_hash
 
-db = SQLAlchemy()
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
+# Initialize Flask app
+app = Flask(__name__)
+
+# Set up CORS
+CORS(app, supports_credentials=True)
+
+# Database Configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:yourpassword@localhost/happy_tails'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'your-secret-key'
+
+# Initialize extensions
+db = SQLAlchemy(app)
+
+# Model definitions
 class Pet(db.Model):
     __tablename__ = 'pet'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -46,15 +66,7 @@ class VolunteerSchedule(db.Model):
     shift = db.Column(db.String(50), nullable=False)
     task = db.Column(db.String(200), nullable=False)
 
-# app.py
-from flask import Flask, request, jsonify
-from models import db, Pet, Adopter, AdoptionApplication, Volunteer, VolunteerSchedule
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shelter.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
-
+# API Endpoints
 @app.route('/pets', methods=['GET', 'POST'])
 def handle_pets():
     if request.method == 'POST':
